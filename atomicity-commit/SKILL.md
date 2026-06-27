@@ -1,6 +1,6 @@
 ---
 name: atomicity-commit
-description: Draft a Conventional Commits-style commit message (subject + body) for the staged changes and execute `git commit` in a single step. Use whenever the user asks to commit, write a commit message, finalize changes, or types /atomicity-commit. The skill inspects the staged diff, drafts an English subject following the Conventional Commits 1.0.0 spec, writes a body explaining the rationale (why, not what), and commits directly. If the staged set is not a single focused change, it stops first and proposes a split — but the user decides whether to split or proceed.
+description: Draft a Conventional Commits-style commit message (subject + body) for the staged changes and execute `git commit` in a single step. Use whenever the user asks to commit, write a commit message, finalize changes, or types /atomicity-commit. The skill inspects the staged diff, drafts an English subject following the Conventional Commits 1.0.0 spec, adds a short body only when there is non-obvious rationale (why, not what), and commits directly. If the staged set is not a single focused change, it stops first and proposes a split — but the user decides whether to split or proceed.
 disable-model-invocation: false
 allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git rev-parse:*), Bash(git commit:*), Bash(git config:*)
 ---
@@ -46,15 +46,24 @@ Produce a Conventional Commits 1.0.0 message:
 - Description: imperative mood, lowercase first letter (unless the repo log clearly uses Sentence case), no trailing period, target ≤ 50 characters and never exceed 72.
 - Write in English unless the user has explicitly asked for another language.
 
-### Body — explain WHY, not what
+### Body — optional, and short when present
 
-The body is where most commit messages fail. The diff already shows *what* changed line-by-line; re-narrating it adds nothing. The body must answer:
+Default to **subject-only**. If the subject alone conveys the change and its
+intent, omit the body entirely — most commits land here. Add a body only when
+there is genuinely non-obvious rationale a future reader would otherwise miss.
 
-- What problem or need motivated this change?
-- Why this approach over plausible alternatives?
-- What constraints, tradeoffs, or non-obvious consequences should a future reader know?
+The diff already shows *what* changed line-by-line; re-narrating it adds
+nothing. When a body *is* warranted, write only the points that actually apply
+— do not pad to fill all three:
 
-Skip the body only when the subject is genuinely self-explanatory (e.g. `docs: fix typo in README`). When in doubt, write one — even two sentences of rationale is valuable.
+- What problem or need motivated this change (when not obvious from the subject)?
+- Why this approach over a plausible alternative (only when the choice is non-obvious)?
+- A constraint, tradeoff, or non-obvious consequence worth flagging.
+
+**Length budget:** body is typically 0–2 lines; 4 lines is a hard ceiling. Pick
+the single most valuable point and state it. If you find yourself writing more,
+the surplus is almost always re-narrated diff — cut it. When in doubt, omit the
+body rather than pad it.
 
 Wrap body lines at 72 characters. Separate subject and body with a blank line.
 
@@ -97,7 +106,7 @@ The default mode is end-to-end: draft the message and commit, in a single respon
    - **If clean:** continue without asking.
 3. Classify the change (type, scope, breaking?).
 4. Write the subject — imperative, ≤ 50 chars target, ≤ 72 hard limit.
-5. Write the body — focused on rationale. Aim for 1–4 short paragraphs or tight bullets *of reasons*, not of file changes. Skip the body only if the subject is genuinely self-explanatory.
+5. Decide on the body. Default to subject-only — omit it unless there is non-obvious rationale. When you do write one, keep it to 0–2 lines (4 lines hard max), stating only the single most valuable reason, never re-narrating the diff.
 6. Add footers only if warranted (BREAKING CHANGE, issue refs the user mentioned, etc.).
 7. Commit immediately. For anything beyond a subject + single short paragraph, write the message to a temp file and use `git commit -F` to avoid shell-escaping issues — see `references/committing.md`.
 8. After the commit, run `git --no-pager log -1 --format=fuller` and show the user what was recorded, so they can verify and `--amend` if needed.
