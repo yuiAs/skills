@@ -2,7 +2,7 @@
 name: atomicity-commit
 description: Draft a Conventional Commits-style commit message (subject + body) for the staged changes and execute `git commit` in a single step. Use whenever the user asks to commit, write a commit message, finalize changes, or types /atomicity-commit. The skill inspects the staged diff, drafts an English subject following the Conventional Commits 1.0.0 spec, adds a short body only when there is non-obvious rationale (why, not what), and commits directly. If the staged set is not a single focused change, it stops first and proposes a split — but the user decides whether to split or proceed.
 disable-model-invocation: false
-allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git rev-parse:*), Bash(git commit:*), Bash(git config:*)
+allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git rev-parse:*), Bash(git add:*), Bash(git commit:*), Bash(git config:*)
 ---
 
 # Commit Message
@@ -23,7 +23,10 @@ Run these commands before drafting anything. Skipping them produces guesses, not
 
 Use the recent log to learn the repository's own conventions (type vocabulary, scope style, casing) and follow them when they don't conflict with the rules below. If the log shows a clearly different style, prefer the repo's style and mention the deviation to the user once.
 
-If nothing is staged, stop and tell the user — do not stage files on their behalf. They decide what belongs in the commit.
+Staging behavior depends on what is already staged:
+
+- **Nothing staged:** you may `git add` the relevant changes yourself so the commit has content. Pick the files that form one focused change.
+- **Something already staged:** the user has signalled what they want in this commit. Before adding anything else, ask whether the other unstaged files should be included too — do not silently expand the staged set. Let the user decide what belongs in the commit.
 
 ## Output format
 
